@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concord — Edge Memory & Chaos Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0A0E17; color: #E2E8F0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .card { background: #111827; border: 1px solid #1F2937; }
+    .badge-pass { background-color: #064E3B; color: #34D399; border: 1px solid #059669; }
+    .badge-fail { background-color: #4C0519; color: #FB7185; border: 1px solid #E11D48; }
+    .tab-active { border-bottom: 2px solid #6366F1; color: #818CF8; font-weight: bold; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Top Header -->
+    <header class="flex justify-between items-center border-b border-gray-800 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+          CONCORD // Edge Memory System & Chaos Lab
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Qdrant Edge Distributed Memory • Offline-First Autonomous Agent • Jepsen-Style Chaos Lab</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="switchTab('ledger')" id="btnTabLedger" class="px-4 py-2 text-sm font-semibold tab-active transition">
+          Belief Ledger & Agent (Front Stage)
+        </button>
+        <button onclick="switchTab('chaos')" id="btnTabChaos" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white transition">
+          Chaos Lab (Proof Tab)
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: LEDGER & AGENT (FRONT STAGE APP) -->
+    <main id="viewLedger" class="space-y-6">
+      
+      <!-- Cluster Controller Bar -->
+      <section class="card p-4 rounded-lg flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+          <span class="text-xs uppercase text-slate-400 font-bold">Node:</span>
+          <select id="nodeSelector" onchange="loadActiveNodeLedger()" class="bg-gray-800 border border-gray-700 text-sm rounded px-3 py-1.5 text-white">
+            <option value="edge_a">Simulated Edge Device A (Node: edge_a)</option>
+            <option value="edge_b">Simulated Edge Device B (Node: edge_b)</option>
+            <option value="cloud">Central Cloud Store (Node: cloud)</option>
+          </select>
+          <span class="text-xs uppercase text-slate-400 font-bold ml-2">Network Link:</span>
+          <select id="linkPolicySelector" onchange="updateLinkPolicy()" class="bg-gray-800 border border-gray-700 text-xs rounded px-2.5 py-1.5 text-white">
+            <option value="BROADBAND">Broadband (LAN / 5G)</option>
+            <option value="LOW_BANDWIDTH">Low-Bandwidth (Satellite / LoRa)</option>
+            <option value="OFFLINE">Offline (Total Partition)</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="syncNodes('edge_a', 'cloud')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded text-xs">
+            Sync: Edge A ➔ Cloud
+          </button>
+          <button onclick="syncNodes('edge_b', 'cloud')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded text-xs">
+            Sync: Edge B ➔ Cloud
+          </button>
+          <button onclick="syncNodes('cloud', 'edge_a')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded text-xs">
+            Sync: Cloud ➔ Edge A
+          </button>
+        </div>
+      </section>
+
+      <!-- Autonomous Agent Workflow Demo Box (Hackathon Brief Compliance) -->
+      <section class="card p-5 rounded-lg border-indigo-900/50 bg-indigo-950/20">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] bg-indigo-600/30 text-indigo-300 border border-indigo-500 px-2 py-0.5 rounded font-mono uppercase">Edge AI Workflow</span>
+            <h2 class="text-sm font-bold text-white mt-1">Autonomous Edge Safety Agent (Local RAG + Action Loop)</h2>
+            <p class="text-xs text-slate-400">Triggers an offline reasoning cycle: queries local Qdrant memory, detects anomaly, signs belief, and updates ledger.</p>
+          </div>
+          <button onclick="triggerAgentWorkflow()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded text-xs transition shadow-lg shadow-indigo-600/30">
+            Simulate Field Anomaly Event
+          </button>
+        </div>
+        <div id="agentTrace" class="mt-3 hidden p-3 bg-black/60 rounded border border-gray-800 text-xs font-mono text-emerald-400"></div>
+      </section>
+
+      <!-- Ingest Form & Hybrid Search Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section class="card p-5 rounded-lg space-y-4">
+          <h2 class="text-sm font-bold uppercase text-slate-300">Ingest Local Belief (Ed25519 Signed)</h2>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1">Belief Key</label>
+              <input type="text" id="inpKey" placeholder="turbine_bearing_temp" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Statement Fact</label>
+              <input type="text" id="inpStmt" placeholder="Bearing temperature 98C - Exceeds threshold" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-1">
+                <label class="block text-slate-400 mb-1">Outcome Status</label>
+                <select id="inpStatus" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+                  <option value="VERIFIED">VERIFIED (Ground Truth)</option>
+                  <option value="UNKNOWN">UNKNOWN (Hypothesis)</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label class="block text-slate-400 mb-1">Criticality</label>
+                <select id="inpCriticality" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+                  <option value="0.1">0.1 - Standard Telemetry</option>
+                  <option value="0.5">0.5 - Operator Note</option>
+                  <option value="1.0">1.0 - Critical Alert</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <input type="checkbox" id="inpPrivate" class="rounded bg-gray-900 border-gray-700 text-indigo-600">
+              <label for="inpPrivate" class="text-slate-300">Mark Private (Zero-Leakage Policy)</label>
+            </div>
+            <button onclick="submitNewBelief()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded text-xs transition">
+              Ingest & Index on Local Qdrant
+            </button>
+          </div>
+        </section>
+
+        <section class="card p-5 rounded-lg space-y-4">
+          <h2 class="text-sm font-bold uppercase text-slate-300">Hybrid Search (Dense Cosine + Lexical Boost)</h2>
+          <div class="flex gap-2">
+            <input type="text" id="inpSearch" placeholder="Query semantic memory (e.g. overheating, pressure)..." class="flex-1 bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white">
+            <button onclick="runHybridSearch()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-xs font-semibold">
+              Search
+            </button>
+          </div>
+          <div id="searchResults" class="space-y-2 max-h-48 overflow-y-auto text-xs text-slate-400">
+            <p class="italic text-slate-500">Run a search to inspect hybrid ranking scores.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Active Ledger Table -->
+      <section class="card p-5 rounded-lg">
+        <h2 class="text-sm font-bold uppercase text-slate-300 mb-3 flex justify-between items-center">
+          <span>Active Belief Ledger</span>
+          <span id="ledgerCount" class="text-xs font-normal text-slate-500">0 records</span>
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-gray-800 text-slate-400">
+                <th class="p-2">Key</th>
+                <th class="p-2">Statement</th>
+                <th class="p-2">Outcome</th>
+                <th class="p-2">Confidence</th>
+                <th class="p-2">Criticality</th>
+                <th class="p-2">Origin</th>
+                <th class="p-2">Private</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTableBody">
+              <tr><td colspan="7" class="p-4 text-center text-slate-500 italic">No records in this node's ledger.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 2: CHAOS LAB (PROOF TAB) -->
+    <main id="viewChaos" class="space-y-6 hidden">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-white">Edge Memory Chaos Matrix (Jepsen for AI Memory)</h2>
+          <p class="text-xs text-slate-400">Comparing Concord-Lite against 3 baseline distributed engines across 8 chaos scenarios</p>
+        </div>
+        <button id="runBtn" onclick="runChaosTournament()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+          Run Chaos Tournament
+        </button>
+      </div>
+
+      <section class="card rounded-lg p-5">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-400">
+                <th class="p-3">Scenario Tested</th>
+                <th class="p-3">Target Invariant</th>
+                <th class="p-3">Raw FIFO Queue</th>
+                <th class="p-3">LWW-CRDT</th>
+                <th class="p-3">Latest Wins</th>
+                <th class="p-3 text-indigo-400 font-bold">Concord-Lite</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody">
+              <tr class="text-slate-500"><td colspan="6" class="p-8 text-center italic">Click "Run Chaos Tournament" to run automated fault injection.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card rounded-lg p-5">
+        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Live Verification Traces</h3>
+        <pre id="traceLog" class="bg-black/60 p-4 rounded text-xs text-slate-400 h-64 overflow-y-auto font-mono">System idle. Ready for injection.</pre>
+      </section>
+    </main>
+
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      const vLedger = document.getElementById("viewLedger");
+      const vChaos = document.getElementById("viewChaos");
+      const bLedger = document.getElementById("btnTabLedger");
+      const bChaos = document.getElementById("btnTabChaos");
+
+      if (tab === 'ledger') {
+        vLedger.classList.remove('hidden');
+        vChaos.classList.add('hidden');
+        bLedger.className = "px-4 py-2 text-sm font-semibold tab-active transition";
+        bChaos.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white transition";
+        loadActiveNodeLedger();
+      } else {
+        vLedger.classList.add('hidden');
+        vChaos.classList.remove('hidden');
+        bChaos.className = "px-4 py-2 text-sm font-semibold tab-active transition";
+        bLedger.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white transition";
+      }
+    }
+
+    async function loadActiveNodeLedger() {
+      const node = document.getElementById("nodeSelector").value;
+      try {
+        const resp = await fetch(`/api/ledger/${node}`);
+        const data = await resp.json();
+        const tbody = document.getElementById("ledgerTableBody");
+        const count = document.getElementById("ledgerCount");
+        count.innerText = `${data.records.length} records`;
+
+        if (data.records.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500 italic">No records in this node's ledger.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.records.map(r => `
+          <tr class="border-b border-gray-800 hover:bg-gray-800/40">
+            <td class="p-2 font-semibold text-slate-200">${r.belief_key}</td>
+            <td class="p-2 text-slate-300">${r.statement}</td>
+            <td class="p-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${r.outcome_status === 'VERIFIED' ? 'bg-emerald-950 text-emerald-400 border border-emerald-700' : 'bg-amber-950 text-amber-400 border border-amber-700'}">
+                ${r.outcome_status}
+              </span>
+            </td>
+            <td class="p-2">${r.confidence_score.toFixed(2)}</td>
+            <td class="p-2">${r.criticality.toFixed(1)}</td>
+            <td class="p-2 font-mono text-slate-400">${r.provenance.origin_device_id}</td>
+            <td class="p-2">${r.is_private ? '<span class="text-rose-400 font-bold">YES</span>' : '<span class="text-slate-500">NO</span>'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function triggerAgentWorkflow() {
+      const node = document.getElementById("nodeSelector").value;
+      const trace = document.getElementById("agentTrace");
+      trace.classList.remove("hidden");
+      trace.innerText = `[*] Autonomous agent on [${node}] querying local Qdrant memory...\n`;
+
+      const resp = await fetch(`/api/agent/${node}/trigger`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sensor_key: "turbine_bearing_temp",
+          reading_value: 98.4,
+          threshold: 90.0
+        })
+      });
+      const data = await resp.json();
+      trace.innerText += `[+] Local RAG Context Evaluated: ${data.historical_context_retrieved.length} prior facts retrieved.\n`;
+      trace.innerText += `[!] Status: ${data.status} | Generated Attested Decision:\n`;
+      trace.innerText += `    "${data.generated_belief.statement}"\n`;
+      trace.innerText += `[✓] Ed25519 signature generated. Queued for dynamic policy sync.\n`;
+      loadActiveNodeLedger();
+    }
+
+    async function updateLinkPolicy() {
+      const node = document.getElementById("nodeSelector").value;
+      const policy = document.getElementById("linkPolicySelector").value;
+      await fetch(`/api/policy/${node}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: policy })
+      });
+    }
+
+    async function submitNewBelief() {
+      const node = document.getElementById("nodeSelector").value;
+      const key = document.getElementById("inpKey").value.trim();
+      const stmt = document.getElementById("inpStmt").value.trim();
+      const status = document.getElementById("inpStatus").value;
+      const crit = parseFloat(document.getElementById("inpCriticality").value);
+      const isPriv = document.getElementById("inpPrivate").checked;
+
+      if (!key || !stmt) return alert("Enter key and statement.");
+
+      await fetch(`/api/ledger/${node}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          belief_key: key,
+          statement: stmt,
+          outcome_status: status,
+          criticality: crit,
+          is_private: isPriv
+        })
+      });
+
+      document.getElementById("inpKey").value = "";
+      document.getElementById("inpStmt").value = "";
+      loadActiveNodeLedger();
+    }
+
+    async function runHybridSearch() {
+      const node = document.getElementById("nodeSelector").value;
+      const query = document.getElementById("inpSearch").value.trim();
+      if (!query) return;
+
+      const resp = await fetch(`/api/ledger/${node}/search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query, limit: 5 })
+      });
+      const data = await resp.json();
+      const container = document.getElementById("searchResults");
+
+      if (data.results.length === 0) {
+        container.innerHTML = `<p class="italic text-slate-500">No matching records found.</p>`;
+        return;
+      }
+
+      container.innerHTML = data.results.map(res => `
+        <div class="p-2 bg-gray-900 border border-gray-800 rounded flex justify-between items-center">
+          <div>
+            <span class="font-bold text-slate-200">${res.record.belief_key}:</span>
+            <span class="text-slate-300 ml-1">${res.record.statement}</span>
+          </div>
+          <span class="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700">Score: ${res.score}</span>
+        </div>
+      `).join('');
+    }
+
+    async function syncNodes(src, dst) {
+      const resp = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ src_node: src, dst_node: dst })
+      });
+      const data = await resp.json();
+      alert(`Sync [${src} ➔ ${dst}] complete.\nProfile: ${data.policy_active}\nBatch passed: ${data.transferred}\nApplied: ${data.applied}`);
+      loadActiveNodeLedger();
+    }
+
+    async function runChaosTournament() {
+      const btn = document.getElementById("runBtn");
+      const log = document.getElementById("traceLog");
+      btn.disabled = true;
+      btn.innerText = "Running Tournament...";
+      log.innerText = "[*] Dispatching 8 chaos scenarios across 4 memory engines...\n";
+
+      try {
+        const resp = await fetch("/api/chaos/run-matrix", { method: "POST" });
+        const data = await resp.json();
+        renderMatrix(data.matrix);
+        log.innerText += "[+] Tournament complete. Scoreboard populated.\n";
+      } catch (e) {
+        log.innerText += `[!] Error running tournament: ${e.message}\n`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Run Chaos Tournament";
+      }
+    }
+
+    function renderMatrix(matrix) {
+      const tbody = document.getElementById("matrixBody");
+      tbody.innerHTML = "";
+      const scenarios = matrix["ConcordLite"] || [];
+
+      scenarios.forEach((sc, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-slate-800 hover:bg-slate-800/40";
+        
+        const rawRes = matrix["RawQueue"][idx].success;
+        const lwwRes = matrix["LWW-CRDT"][idx].success;
+        const latestRes = matrix["LatestWins"][idx].success;
+        const concordRes = sc.success;
+        const inv = sc.invariants[0] || { check_id: "INV", name: "Generic" };
+
+        tr.innerHTML = `
+          <td class="p-3 font-medium text-slate-200">${sc.scenario_name}</td>
+          <td class="p-3 text-slate-400 font-mono">${inv.check_id}: ${inv.name}</td>
+          <td class="p-3">${badge(rawRes)}</td>
+          <td class="p-3">${badge(lwwRes)}</td>
+          <td class="p-3">${badge(latestRes)}</td>
+          <td class="p-3 bg-indigo-950/20">${badge(concordRes)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function badge(passed) {
+      return passed 
+        ? `<span class="badge-pass px-2 py-0.5 rounded text-[11px] font-semibold">PASS</span>`
+        : `<span class="badge-fail px-2 py-0.5 rounded text-[11px] font-semibold">FAIL</span>`;
+    }
+
+    loadActiveNodeLedger();
+  </script>
+</body>
+</html>
